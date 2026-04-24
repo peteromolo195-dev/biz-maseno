@@ -9,11 +9,28 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PackagesRouteImport } from './routes/packages'
 import { Route as OpportunityRouteImport } from './routes/opportunity'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AppTransactionsRouteImport } from './routes/app.transactions'
+import { Route as AppSharesRouteImport } from './routes/app.shares'
+import { Route as AppReferralsRouteImport } from './routes/app.referrals'
+import { Route as AppProfileRouteImport } from './routes/app.profile'
+import { Route as AppPackagesRouteImport } from './routes/app.packages'
+import { Route as AppKycRouteImport } from './routes/app.kyc'
+import { Route as AppContractRouteImport } from './routes/app.contract'
+import { Route as AppChatRouteImport } from './routes/app.chat'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PackagesRoute = PackagesRouteImport.update({
   id: '/packages',
   path: '/packages',
@@ -22,6 +39,11 @@ const PackagesRoute = PackagesRouteImport.update({
 const OpportunityRoute = OpportunityRouteImport.update({
   id: '/opportunity',
   path: '/opportunity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -34,43 +56,197 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/app/',
+  path: '/app/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppTransactionsRoute = AppTransactionsRouteImport.update({
+  id: '/app/transactions',
+  path: '/app/transactions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppSharesRoute = AppSharesRouteImport.update({
+  id: '/app/shares',
+  path: '/app/shares',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppReferralsRoute = AppReferralsRouteImport.update({
+  id: '/app/referrals',
+  path: '/app/referrals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/app/profile',
+  path: '/app/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppPackagesRoute = AppPackagesRouteImport.update({
+  id: '/app/packages',
+  path: '/app/packages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppKycRoute = AppKycRouteImport.update({
+  id: '/app/kyc',
+  path: '/app/kyc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppContractRoute = AppContractRouteImport.update({
+  id: '/app/contract',
+  path: '/app/contract',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppChatRoute = AppChatRouteImport.update({
+  id: '/app/chat',
+  path: '/app/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/login': typeof LoginRoute
   '/opportunity': typeof OpportunityRoute
   '/packages': typeof PackagesRoute
+  '/signup': typeof SignupRoute
+  '/app/chat': typeof AppChatRoute
+  '/app/contract': typeof AppContractRoute
+  '/app/kyc': typeof AppKycRoute
+  '/app/packages': typeof AppPackagesRoute
+  '/app/profile': typeof AppProfileRoute
+  '/app/referrals': typeof AppReferralsRoute
+  '/app/shares': typeof AppSharesRoute
+  '/app/transactions': typeof AppTransactionsRoute
+  '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/login': typeof LoginRoute
   '/opportunity': typeof OpportunityRoute
   '/packages': typeof PackagesRoute
+  '/signup': typeof SignupRoute
+  '/app/chat': typeof AppChatRoute
+  '/app/contract': typeof AppContractRoute
+  '/app/kyc': typeof AppKycRoute
+  '/app/packages': typeof AppPackagesRoute
+  '/app/profile': typeof AppProfileRoute
+  '/app/referrals': typeof AppReferralsRoute
+  '/app/shares': typeof AppSharesRoute
+  '/app/transactions': typeof AppTransactionsRoute
+  '/admin': typeof AdminIndexRoute
+  '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/login': typeof LoginRoute
   '/opportunity': typeof OpportunityRoute
   '/packages': typeof PackagesRoute
+  '/signup': typeof SignupRoute
+  '/app/chat': typeof AppChatRoute
+  '/app/contract': typeof AppContractRoute
+  '/app/kyc': typeof AppKycRoute
+  '/app/packages': typeof AppPackagesRoute
+  '/app/profile': typeof AppProfileRoute
+  '/app/referrals': typeof AppReferralsRoute
+  '/app/shares': typeof AppSharesRoute
+  '/app/transactions': typeof AppTransactionsRoute
+  '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/opportunity' | '/packages'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/login'
+    | '/opportunity'
+    | '/packages'
+    | '/signup'
+    | '/app/chat'
+    | '/app/contract'
+    | '/app/kyc'
+    | '/app/packages'
+    | '/app/profile'
+    | '/app/referrals'
+    | '/app/shares'
+    | '/app/transactions'
+    | '/admin/'
+    | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/opportunity' | '/packages'
-  id: '__root__' | '/' | '/about' | '/opportunity' | '/packages'
+  to:
+    | '/'
+    | '/about'
+    | '/login'
+    | '/opportunity'
+    | '/packages'
+    | '/signup'
+    | '/app/chat'
+    | '/app/contract'
+    | '/app/kyc'
+    | '/app/packages'
+    | '/app/profile'
+    | '/app/referrals'
+    | '/app/shares'
+    | '/app/transactions'
+    | '/admin'
+    | '/app'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/login'
+    | '/opportunity'
+    | '/packages'
+    | '/signup'
+    | '/app/chat'
+    | '/app/contract'
+    | '/app/kyc'
+    | '/app/packages'
+    | '/app/profile'
+    | '/app/referrals'
+    | '/app/shares'
+    | '/app/transactions'
+    | '/admin/'
+    | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  LoginRoute: typeof LoginRoute
   OpportunityRoute: typeof OpportunityRoute
   PackagesRoute: typeof PackagesRoute
+  SignupRoute: typeof SignupRoute
+  AppChatRoute: typeof AppChatRoute
+  AppContractRoute: typeof AppContractRoute
+  AppKycRoute: typeof AppKycRoute
+  AppPackagesRoute: typeof AppPackagesRoute
+  AppProfileRoute: typeof AppProfileRoute
+  AppReferralsRoute: typeof AppReferralsRoute
+  AppSharesRoute: typeof AppSharesRoute
+  AppTransactionsRoute: typeof AppTransactionsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AppIndexRoute: typeof AppIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/packages': {
       id: '/packages'
       path: '/packages'
@@ -83,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/opportunity'
       fullPath: '/opportunity'
       preLoaderRoute: typeof OpportunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -99,15 +282,106 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/app'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/transactions': {
+      id: '/app/transactions'
+      path: '/app/transactions'
+      fullPath: '/app/transactions'
+      preLoaderRoute: typeof AppTransactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/shares': {
+      id: '/app/shares'
+      path: '/app/shares'
+      fullPath: '/app/shares'
+      preLoaderRoute: typeof AppSharesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/referrals': {
+      id: '/app/referrals'
+      path: '/app/referrals'
+      fullPath: '/app/referrals'
+      preLoaderRoute: typeof AppReferralsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/profile': {
+      id: '/app/profile'
+      path: '/app/profile'
+      fullPath: '/app/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/packages': {
+      id: '/app/packages'
+      path: '/app/packages'
+      fullPath: '/app/packages'
+      preLoaderRoute: typeof AppPackagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/kyc': {
+      id: '/app/kyc'
+      path: '/app/kyc'
+      fullPath: '/app/kyc'
+      preLoaderRoute: typeof AppKycRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/contract': {
+      id: '/app/contract'
+      path: '/app/contract'
+      fullPath: '/app/contract'
+      preLoaderRoute: typeof AppContractRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/chat': {
+      id: '/app/chat'
+      path: '/app/chat'
+      fullPath: '/app/chat'
+      preLoaderRoute: typeof AppChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  LoginRoute: LoginRoute,
   OpportunityRoute: OpportunityRoute,
   PackagesRoute: PackagesRoute,
+  SignupRoute: SignupRoute,
+  AppChatRoute: AppChatRoute,
+  AppContractRoute: AppContractRoute,
+  AppKycRoute: AppKycRoute,
+  AppPackagesRoute: AppPackagesRoute,
+  AppProfileRoute: AppProfileRoute,
+  AppReferralsRoute: AppReferralsRoute,
+  AppSharesRoute: AppSharesRoute,
+  AppTransactionsRoute: AppTransactionsRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AppIndexRoute: AppIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
