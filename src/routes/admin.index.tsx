@@ -105,7 +105,7 @@ function TxTab() {
   const load = () => supabase.from("transactions").select("*, profiles(username, investor_id, full_name)").order("created_at", { ascending: false }).limit(200).then(({ data }) => setTxs(data ?? []));
   useEffect(() => { load(); }, []);
 
-  const update = async (id: string, status: string) => {
+  const update = async (id: string, status: "approved" | "rejected" | "completed") => {
     const { error } = await supabase.from("transactions").update({ status, approved_by: user?.id, approved_at: new Date().toISOString() }).eq("id", id);
     if (error) return toast.error(error.message);
     toast.success(`Transaction ${status}`);
