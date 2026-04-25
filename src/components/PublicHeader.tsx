@@ -20,7 +20,7 @@ export function PublicHeader() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link to="/" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-navy">
-            <span className="font-display text-lg font-bold text-gold">S</span>
+            <span className="font-display text-lg font-bold text-gold">K</span>
           </div>
           <span className="font-display text-lg font-semibold text-navy">Kenya Capital</span>
         </Link>
