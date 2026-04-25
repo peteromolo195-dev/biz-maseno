@@ -20,7 +20,9 @@ const schema = z.object({
 });
 
 export const Route = createFileRoute("/signup")({
-  validateSearch: (s: Record<string, unknown>) => ({ ref: typeof s.ref === "string" ? s.ref : "" }),
+  validateSearch: (s: Record<string, unknown>): { ref?: string } => ({
+    ref: typeof s.ref === "string" ? s.ref : undefined,
+  }),
   component: Signup,
 });
 
