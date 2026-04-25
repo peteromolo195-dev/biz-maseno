@@ -26,7 +26,7 @@ export function PublicFooter() {
         <div>
           <h4 className="font-display text-sm font-semibold text-gold">Investors</h4>
           <ul className="mt-3 space-y-2 text-sm text-navy-foreground/80">
-            <li><Link to="/signup" search={{ ref: "" }}>Become an investor</Link></li>
+            <li><Link to="/signup">Become an investor</Link></li>
             <li><Link to="/login">Investor login</Link></li>
           </ul>
         </div>
