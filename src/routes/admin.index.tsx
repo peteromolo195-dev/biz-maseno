@@ -48,12 +48,16 @@ function Admin() {
             <TabsTrigger value="tx"><Receipt className="mr-1 h-4 w-4" />Transactions</TabsTrigger>
             <TabsTrigger value="kyc"><FileCheck2 className="mr-1 h-4 w-4" />KYC</TabsTrigger>
             <TabsTrigger value="subs">Subscriptions</TabsTrigger>
+            <TabsTrigger value="packages"><PackageIcon className="mr-1 h-4 w-4" />Packages</TabsTrigger>
+            <TabsTrigger value="config"><Settings className="mr-1 h-4 w-4" />Configuration</TabsTrigger>
             <TabsTrigger value="audit"><ScrollText className="mr-1 h-4 w-4" />Audit Log</TabsTrigger>
           </TabsList>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="tx"><TxTab /></TabsContent>
           <TabsContent value="kyc"><KycTab /></TabsContent>
           <TabsContent value="subs"><SubsTab /></TabsContent>
+          <TabsContent value="packages"><PackagesTab /></TabsContent>
+          <TabsContent value="config"><ConfigTab /></TabsContent>
           <TabsContent value="audit"><AuditTab /></TabsContent>
         </Tabs>
       </div>
