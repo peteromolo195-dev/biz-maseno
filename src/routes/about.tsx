@@ -5,8 +5,8 @@ import { PublicFooter } from "@/components/PublicFooter";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About Us — Sterling Capital" },
-      { name: "description", content: "Sterling Capital is a Nairobi-based investment company building lasting value for Kenyan shareholders." },
+      { title: "About Us — Kenya Capital" },
+      { name: "description", content: "Kenya Capital is a Nairobi-based investment company building lasting value for Kenyan shareholders." },
     ],
   }),
   component: About,
@@ -18,7 +18,7 @@ function About() {
       <PublicHeader />
       <section className="bg-hero py-16 text-navy-foreground">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-          <h1 className="font-display text-4xl font-bold sm:text-5xl">About Sterling Capital</h1>
+          <h1 className="font-display text-4xl font-bold sm:text-5xl">About Kenya Capital</h1>
           <p className="mx-auto mt-4 max-w-2xl text-navy-foreground/80">A modern investment company built on transparency, accountability, and shared prosperity.</p>
         </div>
       </section>
@@ -39,7 +39,7 @@ function About() {
 
           <h2 className="mt-10 font-display text-2xl font-bold text-navy">Leadership</h2>
           <p className="mt-3 text-muted-foreground">
-            Sterling Capital is led by a small team of finance, technology, and operations professionals committed to building Kenya's most trusted shareholder-owned investment company.
+            Kenya Capital is led by a small team of finance, technology, and operations professionals committed to building Kenya's most trusted shareholder-owned investment company.
           </p>
         </div>
       </section>

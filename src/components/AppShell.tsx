@@ -45,9 +45,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background px-4">
         <Link to="/app" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-navy">
-            <span className="font-display text-sm font-bold text-gold">S</span>
+            <span className="font-display text-sm font-bold text-gold">K</span>
           </div>
-          <span className="font-display text-base font-semibold text-navy">Sterling</span>
+          <span className="font-display text-base font-semibold text-navy">Kenya Capital</span>
         </Link>
         <button
           className="flex h-10 w-10 items-center justify-center rounded-md text-navy hover:bg-muted"
@@ -69,9 +69,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="flex items-center justify-between border-b border-sidebar-border px-4 py-4">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gold">
-                  <span className="font-display text-sm font-bold text-navy">S</span>
+                  <span className="font-display text-sm font-bold text-navy">K</span>
                 </div>
-                <span className="font-display text-base font-semibold">Sterling</span>
+                <span className="font-display text-base font-semibold">Kenya Capital</span>
               </div>
               <button
                 className="text-sidebar-foreground/70 hover:text-sidebar-foreground"

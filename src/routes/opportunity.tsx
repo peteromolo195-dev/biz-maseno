@@ -7,8 +7,8 @@ import { TrendingUp, Building2, Sprout, Coins } from "lucide-react";
 export const Route = createFileRoute("/opportunity")({
   head: () => ({
     meta: [
-      { title: "The Opportunity — Sterling Capital" },
-      { name: "description", content: "Why invest with Sterling Capital — diversified across real estate, agriculture, and growth equity." },
+      { title: "The Opportunity — Kenya Capital" },
+      { name: "description", content: "Why invest with Kenya Capital — diversified across real estate, agriculture, and growth equity." },
     ],
   }),
   component: Opportunity,

@@ -15,7 +15,7 @@ import heroImg from "@/assets/hero.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Sterling Capital — Invest in Kenya's Growth" },
+      { title: "Kenya Capital — Invest in Kenya's Growth" },
       { name: "description", content: "Premium share investment platform. Transparent, secure, and built for long-term wealth." },
     ],
   }),
@@ -60,7 +60,7 @@ function Home() {
               Own a piece of Kenya's <span className="text-gold">next chapter</span>.
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-navy-foreground/80">
-              Sterling Capital is a private investment company offering everyday Kenyans a transparent, secure way to become shareholders. Track your portfolio in real time, receive your unique Investor ID, and grow with us.
+              Kenya Capital is a private investment company offering everyday Kenyans a transparent, secure way to become shareholders. Track your portfolio in real time, receive your unique Investor ID, and grow with us.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link to="/signup">
@@ -94,7 +94,7 @@ function Home() {
       {/* Why us */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-gold">Why Sterling</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-gold">Why Kenya Capital</p>
           <h2 className="mt-3 font-display text-3xl font-bold text-navy sm:text-4xl">Investing made transparent</h2>
           <p className="mt-4 text-muted-foreground">Built from the ground up for clarity, accountability, and long-term shareholder value.</p>
         </div>
