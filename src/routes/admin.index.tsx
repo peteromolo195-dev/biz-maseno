@@ -22,8 +22,10 @@ import { audit } from "@/lib/audit";
 import { formatKes, formatNumber, formatDateTime } from "@/lib/format";
 import {
   Users, Receipt, FileCheck2, ShieldCheck, Search, ScrollText,
-  ChevronLeft, ChevronRight, ArrowUpDown,
+  ChevronLeft, ChevronRight, ArrowUpDown, Package as PackageIcon, Settings,
+  Plus, Trash2, Pencil, Star,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/admin/")({
   component: () => <RequireAuth adminOnly><Admin /></RequireAuth>,
@@ -46,12 +48,16 @@ function Admin() {
             <TabsTrigger value="tx"><Receipt className="mr-1 h-4 w-4" />Transactions</TabsTrigger>
             <TabsTrigger value="kyc"><FileCheck2 className="mr-1 h-4 w-4" />KYC</TabsTrigger>
             <TabsTrigger value="subs">Subscriptions</TabsTrigger>
+            <TabsTrigger value="packages"><PackageIcon className="mr-1 h-4 w-4" />Packages</TabsTrigger>
+            <TabsTrigger value="config"><Settings className="mr-1 h-4 w-4" />Configuration</TabsTrigger>
             <TabsTrigger value="audit"><ScrollText className="mr-1 h-4 w-4" />Audit Log</TabsTrigger>
           </TabsList>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="tx"><TxTab /></TabsContent>
           <TabsContent value="kyc"><KycTab /></TabsContent>
           <TabsContent value="subs"><SubsTab /></TabsContent>
+          <TabsContent value="packages"><PackagesTab /></TabsContent>
+          <TabsContent value="config"><ConfigTab /></TabsContent>
           <TabsContent value="audit"><AuditTab /></TabsContent>
         </Tabs>
       </div>
@@ -863,6 +869,311 @@ function AuditTab() {
             </div>
             <Pager page={page} pageCount={pageCount} total={filtered.length} onChange={setPage} />
           </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/* -------------------- Packages CRUD -------------------- */
+
+interface PackageRow {
+  id: string;
+  name: string;
+  tagline: string | null;
+  price_per_share_kes: number;
+  min_shares: number;
+  benefits: unknown;
+  is_featured: boolean;
+  active: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
+interface PackageForm {
+  id?: string;
+  name: string;
+  tagline: string;
+  price_per_share_kes: string;
+  min_shares: string;
+  benefits: string; // newline-separated
+  is_featured: boolean;
+  active: boolean;
+  sort_order: string;
+}
+
+const emptyPackage: PackageForm = {
+  name: "",
+  tagline: "",
+  price_per_share_kes: "500",
+  min_shares: "10",
+  benefits: "",
+  is_featured: false,
+  active: true,
+  sort_order: "0",
+};
+
+function PackagesTab() {
+  const [rows, setRows] = useState<PackageRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<PackageForm | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    const { data } = await supabase.from("packages").select("*").order("sort_order").order("created_at");
+    setRows((data ?? []) as PackageRow[]);
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, []);
+
+  const openNew = () => setEditing({ ...emptyPackage });
+  const openEdit = (p: PackageRow) => setEditing({
+    id: p.id,
+    name: p.name,
+    tagline: p.tagline ?? "",
+    price_per_share_kes: String(p.price_per_share_kes),
+    min_shares: String(p.min_shares),
+    benefits: Array.isArray(p.benefits) ? (p.benefits as string[]).join("\n") : "",
+    is_featured: p.is_featured,
+    active: p.active,
+    sort_order: String(p.sort_order),
+  });
+
+  const save = async () => {
+    if (!editing) return;
+    if (!editing.name.trim()) return toast.error("Name is required");
+    const price = Number(editing.price_per_share_kes);
+    const minShares = Number(editing.min_shares);
+    if (!(price > 0)) return toast.error("Price per share must be > 0");
+    if (!(minShares > 0)) return toast.error("Min shares must be > 0");
+
+    const payload = {
+      name: editing.name.trim(),
+      tagline: editing.tagline.trim() || null,
+      price_per_share_kes: price,
+      min_shares: minShares,
+      benefits: editing.benefits.split("\n").map((s) => s.trim()).filter(Boolean),
+      is_featured: editing.is_featured,
+      active: editing.active,
+      sort_order: Number(editing.sort_order) || 0,
+    };
+
+    if (editing.id) {
+      const { error } = await supabase.from("packages").update(payload).eq("id", editing.id);
+      if (error) return toast.error(error.message);
+      await audit("package.updated", "package", editing.id, payload);
+      toast.success("Package updated");
+    } else {
+      const { data, error } = await supabase.from("packages").insert(payload).select("id").single();
+      if (error) return toast.error(error.message);
+      await audit("package.created", "package", data?.id ?? null, payload);
+      toast.success("Package created");
+    }
+    setEditing(null);
+    load();
+  };
+
+  const remove = async (p: PackageRow) => {
+    if (!confirm(`Delete package "${p.name}"? This cannot be undone.`)) return;
+    const { error } = await supabase.from("packages").delete().eq("id", p.id);
+    if (error) return toast.error(error.message);
+    await audit("package.deleted", "package", p.id, { name: p.name });
+    toast.success("Package deleted");
+    load();
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="font-display text-navy">Share packages</CardTitle>
+          <p className="text-xs text-muted-foreground">Public-facing investment tiers</p>
+        </div>
+        <Button onClick={openNew}><Plus className="mr-1 h-4 w-4" />New package</Button>
+      </CardHeader>
+      <CardContent>
+        {loading ? <p className="py-8 text-center text-sm text-muted-foreground">Loading…</p> : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Price / share</TableHead>
+                  <TableHead>Min shares</TableHead>
+                  <TableHead>Featured</TableHead>
+                  <TableHead>Active</TableHead>
+                  <TableHead>Sort</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell>
+                      <div className="font-medium">{p.name}</div>
+                      <div className="text-xs text-muted-foreground">{p.tagline ?? "—"}</div>
+                    </TableCell>
+                    <TableCell className="font-medium">{formatKes(p.price_per_share_kes)}</TableCell>
+                    <TableCell>{formatNumber(p.min_shares)}</TableCell>
+                    <TableCell>{p.is_featured ? <Star className="h-4 w-4 text-gold" /> : "—"}</TableCell>
+                    <TableCell><Badge variant={p.active ? "default" : "secondary"}>{p.active ? "active" : "hidden"}</Badge></TableCell>
+                    <TableCell>{p.sort_order}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button size="sm" variant="outline" onClick={() => openEdit(p)}><Pencil className="h-3 w-3" /></Button>
+                        <Button size="sm" variant="destructive" onClick={() => remove(p)}><Trash2 className="h-3 w-3" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {rows.length === 0 && (
+                  <TableRow><TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">No packages yet.</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader><DialogTitle className="font-display text-navy">{editing?.id ? "Edit package" : "New package"}</DialogTitle></DialogHeader>
+          {editing && (
+            <div className="grid gap-3">
+              <div className="grid gap-1">
+                <label className="text-xs font-medium text-muted-foreground">Name</label>
+                <Input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} placeholder="e.g. Bronze, Silver, Gold" />
+              </div>
+              <div className="grid gap-1">
+                <label className="text-xs font-medium text-muted-foreground">Tagline</label>
+                <Input value={editing.tagline} onChange={(e) => setEditing({ ...editing, tagline: e.target.value })} placeholder="Short pitch shown on the card" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-1">
+                  <label className="text-xs font-medium text-muted-foreground">Price per share (KSh)</label>
+                  <Input type="number" min={1} value={editing.price_per_share_kes} onChange={(e) => setEditing({ ...editing, price_per_share_kes: e.target.value })} />
+                </div>
+                <div className="grid gap-1">
+                  <label className="text-xs font-medium text-muted-foreground">Minimum shares</label>
+                  <Input type="number" min={1} value={editing.min_shares} onChange={(e) => setEditing({ ...editing, min_shares: e.target.value })} />
+                </div>
+              </div>
+              <div className="grid gap-1">
+                <label className="text-xs font-medium text-muted-foreground">Benefits (one per line)</label>
+                <Textarea rows={4} value={editing.benefits} onChange={(e) => setEditing({ ...editing, benefits: e.target.value })} placeholder={"Priority dividend payouts\nQuarterly investor calls\n..."} />
+              </div>
+              <div className="grid grid-cols-3 items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Switch checked={editing.is_featured} onCheckedChange={(v) => setEditing({ ...editing, is_featured: v })} />
+                  <span className="text-xs">Featured</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={editing.active} onCheckedChange={(v) => setEditing({ ...editing, active: v })} />
+                  <span className="text-xs">Active</span>
+                </div>
+                <div className="grid gap-1">
+                  <label className="text-xs font-medium text-muted-foreground">Sort order</label>
+                  <Input type="number" value={editing.sort_order} onChange={(e) => setEditing({ ...editing, sort_order: e.target.value })} />
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button onClick={save} className="flex-1">{editing.id ? "Save changes" : "Create package"}</Button>
+                <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
+
+/* -------------------- Configuration -------------------- */
+
+interface ConfigItem {
+  key: string;
+  label: string;
+  description: string;
+  type: "number" | "text";
+  prefix?: string;
+}
+
+const CONFIG_ITEMS: ConfigItem[] = [
+  { key: "company_name", label: "Company name", description: "Displayed on certificates and statements", type: "text" },
+  { key: "share_price_kes", label: "Current share price", description: "Default KSh per share for new subscriptions", type: "number", prefix: "KSh" },
+  { key: "min_shares_per_tx", label: "Minimum shares per subscription", description: "Smallest allowed share count in one purchase", type: "number" },
+  { key: "max_shares_per_tx", label: "Maximum shares per subscription", description: "Largest allowed share count in one purchase", type: "number" },
+  { key: "min_deposit_kes", label: "Minimum deposit", description: "Minimum KSh users can record per deposit", type: "number", prefix: "KSh" },
+  { key: "total_shares_authorised", label: "Total shares authorised", description: "Cap on total issuable shares", type: "number" },
+  { key: "referral_points_referrer", label: "Referrer bonus points", description: "Awarded to the referring user on signup", type: "number" },
+  { key: "referral_points_referred", label: "Referred bonus points", description: "Awarded to the new user on signup", type: "number" },
+];
+
+function ConfigTab() {
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    const { data } = await supabase.from("app_config").select("*");
+    const map: Record<string, string> = {};
+    (data ?? []).forEach((r) => {
+      const v = r.value;
+      map[r.key] = typeof v === "string" ? v : JSON.stringify(v);
+    });
+    setValues(map);
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, []);
+
+  const save = async (item: ConfigItem) => {
+    setSaving(item.key);
+    const raw = values[item.key] ?? "";
+    let parsed: unknown;
+    if (item.type === "number") {
+      const n = Number(raw);
+      if (!Number.isFinite(n)) { toast.error("Must be a number"); setSaving(null); return; }
+      parsed = n;
+    } else {
+      parsed = raw;
+    }
+    const { error } = await supabase.from("app_config")
+      .upsert({ key: item.key, value: parsed as never, updated_at: new Date().toISOString() });
+    if (error) { toast.error(error.message); setSaving(null); return; }
+    await audit("config.updated", "app_config", item.key, { value: parsed });
+    toast.success(`${item.label} saved`);
+    setSaving(null);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-display text-navy">System configuration</CardTitle>
+        <p className="text-xs text-muted-foreground">Global settings used across the platform</p>
+      </CardHeader>
+      <CardContent>
+        {loading ? <p className="py-8 text-center text-sm text-muted-foreground">Loading…</p> : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {CONFIG_ITEMS.map((item) => (
+              <div key={item.key} className="grid gap-1 rounded-md border p-3">
+                <label className="text-sm font-medium text-navy">{item.label}</label>
+                <p className="text-xs text-muted-foreground">{item.description}</p>
+                <div className="mt-1 flex items-center gap-2">
+                  {item.prefix && <span className="text-xs text-muted-foreground">{item.prefix}</span>}
+                  <Input
+                    type={item.type === "number" ? "number" : "text"}
+                    value={values[item.key] ?? ""}
+                    onChange={(e) => setValues({ ...values, [item.key]: e.target.value })}
+                    className="h-9"
+                  />
+                  <Button size="sm" onClick={() => save(item)} disabled={saving === item.key}>
+                    {saving === item.key ? "Saving…" : "Save"}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>
