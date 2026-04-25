@@ -12,7 +12,7 @@ import { formatKes } from "@/lib/format";
 export const Route = createFileRoute("/packages")({
   head: () => ({
     meta: [
-      { title: "Investment Packages — Sterling Capital" },
+      { title: "Investment Packages — Kenya Capital" },
       { name: "description", content: "Choose from Starter (3 shares), Growth (20), or Premier (100). Transparent pricing, real shareholder benefits." },
     ],
   }),

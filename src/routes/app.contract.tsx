@@ -66,7 +66,7 @@ function Contract() {
           <CardContent className="space-y-3">
             <div className="max-h-72 overflow-y-auto rounded-md border bg-muted/30 p-4 text-sm leading-relaxed">
               <p className="font-semibold">SHAREHOLDER AGREEMENT</p>
-              <p className="mt-2">This agreement is entered into between Sterling Capital Holdings ("the Company") and the undersigned shareholder ("the Shareholder").</p>
+              <p className="mt-2">This agreement is entered into between Kenya Capital Holdings ("the Company") and the undersigned shareholder ("the Shareholder").</p>
               <p className="mt-2"><strong>1. Subscription.</strong> The Shareholder agrees to subscribe to shares of the Company at the prevailing share price.</p>
               <p className="mt-2"><strong>2. Investor ID.</strong> The Shareholder is identified by a unique 6-character Investor ID issued upon registration.</p>
               <p className="mt-2"><strong>3. Voting Rights.</strong> Each share carries one vote at the Company's Annual General Meeting.</p>

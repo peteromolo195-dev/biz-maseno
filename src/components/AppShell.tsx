@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-navy">
             <span className="font-display text-sm font-bold text-gold">S</span>
           </div>
-          <span className="font-display text-base font-semibold text-navy">Sterling</span>
+          <span className="font-display text-base font-semibold text-navy">Kenya Capital</span>
         </Link>
         <button
           className="flex h-10 w-10 items-center justify-center rounded-md text-navy hover:bg-muted"
@@ -71,7 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gold">
                   <span className="font-display text-sm font-bold text-navy">S</span>
                 </div>
-                <span className="font-display text-base font-semibold">Sterling</span>
+                <span className="font-display text-base font-semibold">Kenya Capital</span>
               </div>
               <button
                 className="text-sidebar-foreground/70 hover:text-sidebar-foreground"

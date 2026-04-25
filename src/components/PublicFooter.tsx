@@ -9,7 +9,7 @@ export function PublicFooter() {
             <div className="flex h-9 w-9 items-center justify-center rounded-md bg-gold">
               <span className="font-display text-lg font-bold text-navy">S</span>
             </div>
-            <span className="font-display text-lg font-semibold">Sterling Capital</span>
+            <span className="font-display text-lg font-semibold">Kenya Capital</span>
           </div>
           <p className="mt-3 text-sm text-navy-foreground/70">
             Building lasting wealth for our shareholders through disciplined investment.
@@ -39,7 +39,7 @@ export function PublicFooter() {
         </div>
       </div>
       <div className="border-t border-navy-foreground/10 py-6 text-center text-xs text-navy-foreground/60">
-        © {new Date().getFullYear()} Sterling Capital Holdings. All rights reserved.
+        © {new Date().getFullYear()} Kenya Capital Holdings. All rights reserved.
       </div>
     </footer>
   );

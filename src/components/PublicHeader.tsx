@@ -22,7 +22,7 @@ export function PublicHeader() {
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-navy">
             <span className="font-display text-lg font-bold text-gold">S</span>
           </div>
-          <span className="font-display text-lg font-semibold text-navy">Sterling Capital</span>
+          <span className="font-display text-lg font-semibold text-navy">Kenya Capital</span>
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
