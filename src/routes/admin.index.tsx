@@ -22,8 +22,10 @@ import { audit } from "@/lib/audit";
 import { formatKes, formatNumber, formatDateTime } from "@/lib/format";
 import {
   Users, Receipt, FileCheck2, ShieldCheck, Search, ScrollText,
-  ChevronLeft, ChevronRight, ArrowUpDown,
+  ChevronLeft, ChevronRight, ArrowUpDown, Package as PackageIcon, Settings,
+  Plus, Trash2, Pencil, Star,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/admin/")({
   component: () => <RequireAuth adminOnly><Admin /></RequireAuth>,
