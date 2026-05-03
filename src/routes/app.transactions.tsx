@@ -36,12 +36,10 @@ function Transactions() {
 
   const load = async () => {
     if (!user) return;
-    const [{ data }, { data: profile }] = await Promise.all([
-      supabase.from("transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("profiles").select("*").eq("id", user.id).single() as Promise<{ data: { wallet_balance?: number } | null }>,
-    ]);
+    const { data } = await supabase.from("transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+    const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
     setTxs(data ?? []);
-    setWalletBalance(Number((profile as Record<string, unknown>)?.wallet_balance ?? 0));
+    setWalletBalance(Number((profile as unknown as Record<string, unknown>)?.wallet_balance ?? 0));
   };
   useEffect(() => { load(); }, [user]);
 
