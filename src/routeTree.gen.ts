@@ -25,6 +25,7 @@ import { Route as AppPackagesRouteImport } from './routes/app.packages'
 import { Route as AppKycRouteImport } from './routes/app.kyc'
 import { Route as AppContractRouteImport } from './routes/app.contract'
 import { Route as AppChatRouteImport } from './routes/app.chat'
+import { Route as ApiPublicMpesaCallbackRouteImport } from './routes/api/public/mpesa-callback'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -106,6 +107,11 @@ const AppChatRoute = AppChatRouteImport.update({
   path: '/app/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicMpesaCallbackRoute = ApiPublicMpesaCallbackRouteImport.update({
+  id: '/api/public/mpesa-callback',
+  path: '/api/public/mpesa-callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/app/transactions': typeof AppTransactionsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/mpesa-callback': typeof ApiPublicMpesaCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/app/transactions': typeof AppTransactionsRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
+  '/api/public/mpesa-callback': typeof ApiPublicMpesaCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -161,6 +169,7 @@ export interface FileRoutesById {
   '/app/transactions': typeof AppTransactionsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/mpesa-callback': typeof ApiPublicMpesaCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/app/transactions'
     | '/admin/'
     | '/app/'
+    | '/api/public/mpesa-callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/app/transactions'
     | '/admin'
     | '/app'
+    | '/api/public/mpesa-callback'
   id:
     | '__root__'
     | '/'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/app/transactions'
     | '/admin/'
     | '/app/'
+    | '/api/public/mpesa-callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -236,6 +248,7 @@ export interface RootRouteChildren {
   AppTransactionsRoute: typeof AppTransactionsRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AppIndexRoute: typeof AppIndexRoute
+  ApiPublicMpesaCallbackRoute: typeof ApiPublicMpesaCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -352,6 +365,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/mpesa-callback': {
+      id: '/api/public/mpesa-callback'
+      path: '/api/public/mpesa-callback'
+      fullPath: '/api/public/mpesa-callback'
+      preLoaderRoute: typeof ApiPublicMpesaCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -372,16 +392,8 @@ const rootRouteChildren: RootRouteChildren = {
   AppTransactionsRoute: AppTransactionsRoute,
   AdminIndexRoute: AdminIndexRoute,
   AppIndexRoute: AppIndexRoute,
+  ApiPublicMpesaCallbackRoute: ApiPublicMpesaCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

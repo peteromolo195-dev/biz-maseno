@@ -566,6 +566,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      recalculate_wallet_balance: {
+        Args: { _user_id: string }
+        Returns: number
+      }
       user_shares_owned: { Args: { _user_id: string }; Returns: number }
     }
     Enums: {
