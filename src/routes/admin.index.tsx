@@ -187,7 +187,7 @@ function UsersTab() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data: profiles } = await supabase.from("profiles").select("*").limit(1000);
+      const { data: profiles } = await supabase.from("profiles").select("*").limit(1000) as { data: UserRow[] | null };
       const list = (profiles ?? []) as UserRow[];
 
       const enriched = await Promise.all(list.map(async (u) => {
