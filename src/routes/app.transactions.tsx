@@ -101,12 +101,12 @@ function Transactions() {
     setSubmitting(true);
     const { error } = await supabase.from("transactions").insert({
       user_id: user.id,
-      type: "withdrawal" as const,
+      type: "withdrawal" as never,
       status: "pending" as const,
       amount_kes: amount,
       reference,
       description,
-    });
+    } as never);
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("Withdrawal request submitted — pending admin approval");
