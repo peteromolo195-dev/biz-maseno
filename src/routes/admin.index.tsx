@@ -20,10 +20,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { audit } from "@/lib/audit";
 import { formatKes, formatNumber, formatDateTime } from "@/lib/format";
+import { exportTablePDF, generateShareCertificate } from "@/lib/pdf-export";
 import {
   Users, Receipt, FileCheck2, ShieldCheck, Search, ScrollText,
   ChevronLeft, ChevronRight, ArrowUpDown, Package as PackageIcon, Settings,
-  Plus, Trash2, Pencil, Star,
+  Plus, Trash2, Pencil, Star, Download, Award,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
@@ -52,13 +53,16 @@ function Admin() {
             <TabsTrigger value="config"><Settings className="mr-1 h-4 w-4" />Configuration</TabsTrigger>
             <TabsTrigger value="audit"><ScrollText className="mr-1 h-4 w-4" />Audit Log</TabsTrigger>
           </TabsList>
-          <TabsContent value="users"><UsersTab /></TabsContent>
-          <TabsContent value="tx"><TxTab /></TabsContent>
-          <TabsContent value="kyc"><KycTab /></TabsContent>
-          <TabsContent value="subs"><SubsTab /></TabsContent>
-          <TabsContent value="packages"><PackagesTab /></TabsContent>
-          <TabsContent value="config"><ConfigTab /></TabsContent>
-          <TabsContent value="audit"><AuditTab /></TabsContent>
+
+          <div className="mt-4">
+            <TabsContent value="users"><UsersTab /></TabsContent>
+            <TabsContent value="tx"><TxTab /></TabsContent>
+            <TabsContent value="kyc"><KycTab /></TabsContent>
+            <TabsContent value="subs"><SubsTab /></TabsContent>
+            <TabsContent value="packages"><PackagesTab /></TabsContent>
+            <TabsContent value="config"><ConfigTab /></TabsContent>
+            <TabsContent value="audit"><AuditTab /></TabsContent>
+          </div>
         </Tabs>
       </div>
     </AppShell>
@@ -168,7 +172,7 @@ function compareVals(a: unknown, b: unknown, dir: "asc" | "desc") {
 interface UserRow {
   id: string; investor_id: string; username: string; email: string;
   full_name: string | null; phone: string | null; kyc_status: string;
-  created_at: string; referral_points: number;
+  created_at: string; referral_points: number; wallet_balance?: number;
   shares_owned?: number; referrals_count?: number;
 }
 
@@ -184,15 +188,14 @@ function UsersTab() {
     (async () => {
       setLoading(true);
       const { data: profiles } = await supabase.from("profiles").select("*").limit(1000);
-      const list = profiles ?? [];
+      const list = (profiles ?? []) as UserRow[];
 
-      // Compute shares + referral counts in parallel for the loaded users.
       const enriched = await Promise.all(list.map(async (u) => {
         const [{ data: shares }, { count: refCount }] = await Promise.all([
           supabase.rpc("user_shares_owned", { _user_id: u.id }),
           supabase.from("referrals").select("*", { count: "exact", head: true }).eq("referrer_id", u.id),
         ]);
-        return { ...u, shares_owned: Number(shares ?? 0), referrals_count: refCount ?? 0 } as UserRow;
+        return { ...u, shares_owned: Number(shares ?? 0), referrals_count: refCount ?? 0 };
       }));
       setRows(enriched);
       setLoading(false);
@@ -219,6 +222,35 @@ function UsersTab() {
   const pageCount = Math.ceil(filtered.length / pageSize);
   const visible = paginate(filtered, page, pageSize);
 
+  const exportPDF = () => {
+    exportTablePDF(
+      "Users Report",
+      ["Investor ID", "Name", "Username", "Email", "KYC", "Shares", "Wallet", "Joined"],
+      filtered.map((u) => [
+        u.investor_id, u.full_name ?? "—", u.username, u.email,
+        u.kyc_status, String(u.shares_owned ?? 0),
+        formatKes(u.wallet_balance ?? 0), formatDateTime(u.created_at),
+      ]),
+      "Kenya_Capital_Users.pdf",
+    );
+  };
+
+  const issueCertificate = (u: UserRow) => {
+    if (!u.shares_owned || u.shares_owned <= 0) {
+      toast.error("User has no shares");
+      return;
+    }
+    generateShareCertificate({
+      investorId: u.investor_id,
+      fullName: u.full_name ?? u.username,
+      shares: u.shares_owned,
+      pricePerShare: 500,
+      certificateNo: `KC-${u.investor_id}-${Date.now().toString(36).toUpperCase()}`,
+      issueDate: new Date().toLocaleDateString("en-KE", { year: "numeric", month: "long", day: "numeric" }),
+    });
+    toast.success("Certificate generated");
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -235,6 +267,7 @@ function UsersTab() {
               { label: "Rejected", value: "rejected" },
             ],
           }}
+          right={<Button size="sm" variant="outline" onClick={exportPDF}><Download className="mr-1 h-4 w-4" />Export PDF</Button>}
         />
       </CardHeader>
       <CardContent>
@@ -249,8 +282,9 @@ function UsersTab() {
                     <TableHead>Contact</TableHead>
                     <SortableHead label="KYC" field="kyc_status" sort={sort} onSort={onSort} />
                     <SortableHead label="Shares" field="shares_owned" sort={sort} onSort={onSort} />
-                    <SortableHead label="Refs" field="referrals_count" sort={sort} onSort={onSort} />
+                    <SortableHead label="Wallet" field="wallet_balance" sort={sort} onSort={onSort} />
                     <SortableHead label="Joined" field="created_at" sort={sort} onSort={onSort} />
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -267,12 +301,17 @@ function UsersTab() {
                       </TableCell>
                       <TableCell><Badge>{u.kyc_status}</Badge></TableCell>
                       <TableCell className="font-medium">{formatNumber(u.shares_owned ?? 0)}</TableCell>
-                      <TableCell>{u.referrals_count ?? 0}</TableCell>
+                      <TableCell className="font-medium">{formatKes(u.wallet_balance ?? 0)}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{formatDateTime(u.created_at)}</TableCell>
+                      <TableCell>
+                        <Button size="sm" variant="outline" onClick={() => issueCertificate(u)} title="Generate share certificate">
+                          <Award className="h-3 w-3" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                   {visible.length === 0 && (
-                    <TableRow><TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">No users match.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">No users match.</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -289,7 +328,7 @@ function UsersTab() {
 
 interface TxRow {
   id: string; type: string; status: string; amount_kes: number; shares: number;
-  reference: string | null; created_at: string; user_id: string;
+  reference: string | null; description: string | null; created_at: string; user_id: string;
   profiles?: { username?: string; investor_id?: string; full_name?: string | null } | null;
 }
 
@@ -306,7 +345,7 @@ function TxTab() {
   const load = async () => {
     setLoading(true);
     const { data } = await supabase.from("transactions")
-      .select("*, profiles(username, investor_id, full_name)")
+      .select("*, profiles!transactions_user_id_fkey(username, investor_id, full_name)")
       .order("created_at", { ascending: false }).limit(500);
     setRows((data ?? []) as TxRow[]);
     setLoading(false);
@@ -343,6 +382,20 @@ function TxTab() {
   const pageCount = Math.ceil(filtered.length / 10);
   const visible = paginate(filtered, page);
 
+  const exportPDF = () => {
+    exportTablePDF(
+      "Transactions Report",
+      ["Date", "User", "Type", "Amount", "Shares", "Reference", "Status"],
+      filtered.map((t) => [
+        formatDateTime(t.created_at),
+        `${t.profiles?.full_name ?? "—"} (${t.profiles?.investor_id ?? ""})`,
+        t.type.replace(/_/g, " "), formatKes(t.amount_kes),
+        String(t.shares || "—"), t.reference ?? "—", t.status,
+      ]),
+      "Kenya_Capital_Transactions.pdf",
+    );
+  };
+
   return (
     <Card>
       <CardHeader className="space-y-2">
@@ -360,17 +413,21 @@ function TxTab() {
             ],
           }}
           right={
-            <Select value={type} onValueChange={(v) => { setType(v); setPage(0); }}>
-              <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All types</SelectItem>
-                <SelectItem value="deposit">Deposit</SelectItem>
-                <SelectItem value="share_issuance">Share issuance</SelectItem>
-                <SelectItem value="referral_bonus">Referral bonus</SelectItem>
-                <SelectItem value="dividend">Dividend</SelectItem>
-                <SelectItem value="adjustment">Adjustment</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select value={type} onValueChange={(v) => { setType(v); setPage(0); }}>
+                <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All types</SelectItem>
+                  <SelectItem value="deposit">Deposit</SelectItem>
+                  <SelectItem value="withdrawal">Withdrawal</SelectItem>
+                  <SelectItem value="share_issuance">Share issuance</SelectItem>
+                  <SelectItem value="referral_bonus">Referral bonus</SelectItem>
+                  <SelectItem value="dividend">Dividend</SelectItem>
+                  <SelectItem value="adjustment">Adjustment</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button size="sm" variant="outline" onClick={exportPDF}><Download className="mr-1 h-4 w-4" />PDF</Button>
+            </div>
           }
         />
       </CardHeader>
@@ -452,7 +509,7 @@ function KycTab() {
   const load = async () => {
     setLoading(true);
     const { data } = await supabase.from("kyc_submissions")
-      .select("*, profiles(username, investor_id, full_name, email)")
+      .select("*, profiles!kyc_submissions_user_id_fkey(username, investor_id, full_name, email)")
       .order("created_at", { ascending: false }).limit(500);
     setRows((data ?? []) as KycRow[]);
     setLoading(false);
@@ -502,6 +559,20 @@ function KycTab() {
   const pageCount = Math.ceil(filtered.length / 10);
   const visible = paginate(filtered, page);
 
+  const exportPDF = () => {
+    exportTablePDF(
+      "KYC Submissions Report",
+      ["Submitted", "User", "Document Type", "Doc #", "Status", "Reviewed"],
+      filtered.map((k) => [
+        formatDateTime(k.created_at),
+        `${k.profiles?.full_name ?? "—"} (${k.profiles?.investor_id ?? ""})`,
+        k.document_type.replace(/_/g, " "), k.document_number ?? "—",
+        k.status, k.reviewed_at ? formatDateTime(k.reviewed_at) : "—",
+      ]),
+      "Kenya_Capital_KYC.pdf",
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -517,6 +588,7 @@ function KycTab() {
               { label: "Rejected", value: "rejected" },
             ],
           }}
+          right={<Button size="sm" variant="outline" onClick={exportPDF}><Download className="mr-1 h-4 w-4" />PDF</Button>}
         />
       </CardHeader>
       <CardContent>
@@ -619,6 +691,7 @@ function KycTab() {
 
 interface SubRow {
   id: string; user_id: string; shares: number; total_amount_kes: number;
+  price_per_share_kes: number;
   status: string; created_at: string;
   profiles?: { username?: string; investor_id?: string; full_name?: string | null } | null;
   packages?: { name?: string } | null;
@@ -635,7 +708,7 @@ function SubsTab() {
   const load = async () => {
     setLoading(true);
     const { data } = await supabase.from("subscriptions")
-      .select("*, profiles(username, investor_id, full_name), packages(name)")
+      .select("*, profiles!subscriptions_user_id_fkey(username, investor_id, full_name), packages(name)")
       .order("created_at", { ascending: false }).limit(500);
     setRows((data ?? []) as SubRow[]);
     setLoading(false);
@@ -643,12 +716,20 @@ function SubsTab() {
   useEffect(() => { load(); }, []);
 
   const approve = async (s: SubRow) => {
+    // Check if user has sufficient wallet balance
+    const { data: profile } = await supabase.from("profiles").select("wallet_balance").eq("id", s.user_id).single();
+    const balance = Number(profile?.wallet_balance ?? 0);
+    if (balance < s.total_amount_kes) {
+      toast.error(`Insufficient wallet balance (${formatKes(balance)} < ${formatKes(s.total_amount_kes)}). User needs to deposit first.`);
+      return;
+    }
+
     const { error: sErr } = await supabase.from("subscriptions")
       .update({ status: "active", approved_by: user?.id, approved_at: new Date().toISOString() })
       .eq("id", s.id);
     if (sErr) return toast.error(sErr.message);
     const { error: tErr } = await supabase.from("transactions").insert({
-      user_id: s.user_id, type: "share_issuance", status: "completed",
+      user_id: s.user_id, type: "share_issuance" as const, status: "completed" as const,
       shares: s.shares, amount_kes: s.total_amount_kes,
       reference: `SUB-${s.id.slice(0, 8)}`, related_subscription_id: s.id,
       approved_by: user?.id, approved_at: new Date().toISOString(),
@@ -683,6 +764,19 @@ function SubsTab() {
   const pageCount = Math.ceil(filtered.length / 10);
   const visible = paginate(filtered, page);
 
+  const exportPDF = () => {
+    exportTablePDF(
+      "Subscriptions Report",
+      ["Created", "User", "Package", "Shares", "Total", "Status"],
+      filtered.map((s) => [
+        formatDateTime(s.created_at),
+        `${s.profiles?.full_name ?? "—"} (${s.profiles?.investor_id ?? ""})`,
+        s.packages?.name ?? "Custom", String(s.shares), formatKes(s.total_amount_kes), s.status,
+      ]),
+      "Kenya_Capital_Subscriptions.pdf",
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -699,6 +793,7 @@ function SubsTab() {
               { label: "Cancelled", value: "cancelled" },
             ],
           }}
+          right={<Button size="sm" variant="outline" onClick={exportPDF}><Download className="mr-1 h-4 w-4" />PDF</Button>}
         />
       </CardHeader>
       <CardContent>
@@ -810,6 +905,23 @@ function AuditTab() {
   const pageCount = Math.ceil(filtered.length / 15);
   const visible = paginate(filtered, page, 15);
 
+  const exportPDF = () => {
+    exportTablePDF(
+      "Audit Log Report",
+      ["When", "Actor", "Action", "Entity", "Details"],
+      filtered.map((r) => {
+        const actor = r.actor_id ? actorMap[r.actor_id] : null;
+        return [
+          formatDateTime(r.created_at),
+          actor ? `@${actor.username} (${actor.investor_id})` : "system",
+          r.action, r.entity ?? "—",
+          r.details ? JSON.stringify(r.details, null, 0).slice(0, 100) : "—",
+        ];
+      }),
+      "Kenya_Capital_Audit_Log.pdf",
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -820,6 +932,7 @@ function AuditTab() {
             value: entity, onChange: (v) => { setEntity(v); setPage(0); },
             options: [{ label: "All entities", value: "all" }, ...entities.map((e) => ({ label: e, value: e }))],
           }}
+          right={<Button size="sm" variant="outline" onClick={exportPDF}><Download className="mr-1 h-4 w-4" />PDF</Button>}
         />
       </CardHeader>
       <CardContent>
@@ -878,39 +991,19 @@ function AuditTab() {
 /* -------------------- Packages CRUD -------------------- */
 
 interface PackageRow {
-  id: string;
-  name: string;
-  tagline: string | null;
-  price_per_share_kes: number;
-  min_shares: number;
-  benefits: unknown;
-  is_featured: boolean;
-  active: boolean;
-  sort_order: number;
-  created_at: string;
+  id: string; name: string; tagline: string | null; price_per_share_kes: number;
+  min_shares: number; benefits: unknown; is_featured: boolean; active: boolean;
+  sort_order: number; created_at: string;
 }
 
 interface PackageForm {
-  id?: string;
-  name: string;
-  tagline: string;
-  price_per_share_kes: string;
-  min_shares: string;
-  benefits: string; // newline-separated
-  is_featured: boolean;
-  active: boolean;
-  sort_order: string;
+  id?: string; name: string; tagline: string; price_per_share_kes: string;
+  min_shares: string; benefits: string; is_featured: boolean; active: boolean; sort_order: string;
 }
 
 const emptyPackage: PackageForm = {
-  name: "",
-  tagline: "",
-  price_per_share_kes: "500",
-  min_shares: "10",
-  benefits: "",
-  is_featured: false,
-  active: true,
-  sort_order: "0",
+  name: "", tagline: "", price_per_share_kes: "500", min_shares: "10",
+  benefits: "", is_featured: false, active: true, sort_order: "0",
 };
 
 function PackagesTab() {
@@ -928,15 +1021,10 @@ function PackagesTab() {
 
   const openNew = () => setEditing({ ...emptyPackage });
   const openEdit = (p: PackageRow) => setEditing({
-    id: p.id,
-    name: p.name,
-    tagline: p.tagline ?? "",
-    price_per_share_kes: String(p.price_per_share_kes),
-    min_shares: String(p.min_shares),
+    id: p.id, name: p.name, tagline: p.tagline ?? "",
+    price_per_share_kes: String(p.price_per_share_kes), min_shares: String(p.min_shares),
     benefits: Array.isArray(p.benefits) ? (p.benefits as string[]).join("\n") : "",
-    is_featured: p.is_featured,
-    active: p.active,
-    sort_order: String(p.sort_order),
+    is_featured: p.is_featured, active: p.active, sort_order: String(p.sort_order),
   });
 
   const save = async () => {
@@ -948,13 +1036,10 @@ function PackagesTab() {
     if (!(minShares > 0)) return toast.error("Min shares must be > 0");
 
     const payload = {
-      name: editing.name.trim(),
-      tagline: editing.tagline.trim() || null,
-      price_per_share_kes: price,
-      min_shares: minShares,
+      name: editing.name.trim(), tagline: editing.tagline.trim() || null,
+      price_per_share_kes: price, min_shares: minShares,
       benefits: editing.benefits.split("\n").map((s) => s.trim()).filter(Boolean),
-      is_featured: editing.is_featured,
-      active: editing.active,
+      is_featured: editing.is_featured, active: editing.active,
       sort_order: Number(editing.sort_order) || 0,
     };
 
@@ -969,8 +1054,7 @@ function PackagesTab() {
       await audit("package.created", "package", data?.id ?? null, payload);
       toast.success("Package created");
     }
-    setEditing(null);
-    load();
+    setEditing(null); load();
   };
 
   const remove = async (p: PackageRow) => {
@@ -978,8 +1062,7 @@ function PackagesTab() {
     const { error } = await supabase.from("packages").delete().eq("id", p.id);
     if (error) return toast.error(error.message);
     await audit("package.deleted", "package", p.id, { name: p.name });
-    toast.success("Package deleted");
-    load();
+    toast.success("Package deleted"); load();
   };
 
   return (
@@ -1091,11 +1174,7 @@ function PackagesTab() {
 /* -------------------- Configuration -------------------- */
 
 interface ConfigItem {
-  key: string;
-  label: string;
-  description: string;
-  type: "number" | "text";
-  prefix?: string;
+  key: string; label: string; description: string; type: "number" | "text"; prefix?: string;
 }
 
 const CONFIG_ITEMS: ConfigItem[] = [
