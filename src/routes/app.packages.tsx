@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Check, Star } from "lucide-react";
+import { Check, Star, Wallet } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { RequireAuth } from "@/components/RequireAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,12 +25,18 @@ function AppPackages() {
   const [selected, setSelected] = useState<any | null>(null);
   const [shares, setShares] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   useEffect(() => {
     supabase.from("packages").select("*").eq("active", true).order("sort_order").then(({ data }) => {
       setPackages(data ?? []);
     });
-  }, []);
+    if (user) {
+      supabase.from("profiles").select("*").eq("id", user.id).single().then(({ data }) => {
+        setWalletBalance(Number((data as unknown as Record<string, unknown>)?.wallet_balance ?? 0));
+      });
+    }
+  }, [user]);
 
   const subscribe = async () => {
     if (!user || !selected) return;
@@ -38,8 +44,17 @@ function AppPackages() {
       toast.error(`Minimum ${selected.min_shares} shares for this package`);
       return;
     }
-    setSubmitting(true);
     const total = shares * Number(selected.price_per_share_kes);
+
+    // Check wallet balance
+    if (walletBalance < total) {
+      toast.error(`Insufficient wallet balance (${formatKes(walletBalance)}). You need ${formatKes(total)}. Redirecting to deposit page...`);
+      setSelected(null);
+      setTimeout(() => navigate({ to: "/app/transactions" }), 1500);
+      return;
+    }
+
+    setSubmitting(true);
     const { error } = await supabase.from("subscriptions").insert({
       user_id: user.id,
       package_id: selected.id,
@@ -52,7 +67,7 @@ function AppPackages() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Subscription submitted! Now make a deposit to complete.");
+      toast.success("Subscription submitted! Pending admin approval.");
       setSelected(null);
       navigate({ to: "/app/transactions" });
     }
@@ -61,9 +76,18 @@ function AppPackages() {
   return (
     <AppShell>
       <div className="space-y-6">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-navy">Investment Packages</h1>
-          <p className="text-sm text-muted-foreground">Subscribe to shares — start with as few as 3.</p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="font-display text-2xl font-bold text-navy">Investment Packages</h1>
+            <p className="text-sm text-muted-foreground">Subscribe to shares — start with as few as 3.</p>
+          </div>
+          <div className="flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/5 px-4 py-2">
+            <Wallet className="h-5 w-5 text-gold" />
+            <div>
+              <p className="text-xs text-muted-foreground">Wallet Balance</p>
+              <p className="font-display font-bold text-navy">{formatKes(walletBalance)}</p>
+            </div>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -119,11 +143,19 @@ function AppPackages() {
             <div className="rounded-md bg-muted p-3 text-sm">
               <div className="flex justify-between"><span>Price per share</span><span>{formatKes(selected?.price_per_share_kes ?? 0)}</span></div>
               <div className="mt-1 flex justify-between font-semibold text-navy"><span>Total</span><span>{formatKes(shares * Number(selected?.price_per_share_kes ?? 0))}</span></div>
+              <div className="mt-2 flex justify-between border-t pt-2">
+                <span className="text-muted-foreground">Your wallet</span>
+                <span className={walletBalance >= shares * Number(selected?.price_per_share_kes ?? 0) ? "text-success font-medium" : "text-destructive font-medium"}>
+                  {formatKes(walletBalance)}
+                </span>
+              </div>
+              {walletBalance < shares * Number(selected?.price_per_share_kes ?? 0) && (
+                <p className="mt-2 text-xs text-destructive">⚠ Insufficient funds. Deposit {formatKes(shares * Number(selected?.price_per_share_kes ?? 0) - walletBalance)} more to proceed.</p>
+              )}
             </div>
             <Button onClick={subscribe} disabled={submitting} className="w-full">
               {submitting ? "Submitting..." : "Confirm subscription"}
             </Button>
-            <p className="text-center text-xs text-muted-foreground">After confirming, record a deposit on the Transactions page.</p>
           </div>
         </DialogContent>
       </Dialog>
