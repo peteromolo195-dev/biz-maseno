@@ -36,7 +36,7 @@ export const Route = createFileRoute("/api/public/mpesa-callback")({
             | undefined;
 
           // Log the callback
-          await supabaseAdmin.from("audit_log").insert({
+          await supabaseAdmin.from("audit_log").insert([{
             action: "mpesa.callback",
             entity: "transaction",
             entity_id: cb.CheckoutRequestID ?? null,
@@ -46,8 +46,8 @@ export const Route = createFileRoute("/api/public/mpesa-callback")({
               mpesaCode,
               amount,
               phone,
-            } as Record<string, unknown>,
-          });
+            } as unknown as Record<string, unknown>,
+          }] as never);
 
           // If successful payment, find pending deposit with matching reference and approve
           if (resultCode === 0 && mpesaCode) {
