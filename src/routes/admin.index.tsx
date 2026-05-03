@@ -717,8 +717,8 @@ function SubsTab() {
 
   const approve = async (s: SubRow) => {
     // Check if user has sufficient wallet balance
-    const { data: profile } = await supabase.from("profiles").select("wallet_balance").eq("id", s.user_id).single();
-    const balance = Number(profile?.wallet_balance ?? 0);
+    const { data: profile } = await supabase.from("profiles").select("*").eq("id", s.user_id).single() as { data: { wallet_balance?: number } | null };
+    const balance = Number((profile as Record<string, unknown>)?.wallet_balance ?? 0);
     if (balance < s.total_amount_kes) {
       toast.error(`Insufficient wallet balance (${formatKes(balance)} < ${formatKes(s.total_amount_kes)}). User needs to deposit first.`);
       return;
